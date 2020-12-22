@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"regexp"
+	"strings"
+	"time"
+)
 
 // User represents a user signed up for the social media
 type User struct {
@@ -10,4 +15,46 @@ type User struct {
 	Email     string    `json:"email,omitempty"`
 	Password  string    `json:"password,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`
+}
+
+// Prepare calls the validation and format functions
+func (user *User) Prepare() error {
+	if err := user.validate(); err != nil {
+		return err
+	}
+
+	user.format()
+	return nil
+}
+
+func (user *User) validate() error {
+	if user.Name == "" {
+		return errors.New("A value for 'Name' must be provided")
+	}
+
+	if user.Username == "" {
+		return errors.New("A value for 'Username' must be provided")
+	}
+
+	if user.Email == "" {
+		return errors.New("A value for 'Email' must be provided")
+	}
+
+	emailRegex := regexp.MustCompile(
+		"^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+	)
+	if ! emailRegex.MatchString(user.Email) {
+		return errors.New("The value for 'Email' provided is not valid")
+	}
+
+	if user.Password == "" {
+		return errors.New("A value for 'Password' must be provided")
+	}
+
+	return nil
+}
+
+func (user *User) format() {
+	user.Name = strings.TrimSpace(user.Name)
+	user.Username = strings.TrimSpace(user.Username)
 }
