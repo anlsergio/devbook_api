@@ -39,6 +39,7 @@ func (repository Users) Create(user models.User) (uint64, error) {
 	return uint64(userID), nil
 }
 
+// Get is responsible  for fetching all users that meet the name or username filtering
 func (repository Users) Get(nameOrUsername string) ([]models.User, error) {
 	nameOrUsername = fmt.Sprintf("%%%s%%", nameOrUsername) // %nameOrUsername%
 
@@ -72,4 +73,29 @@ func (repository Users) Get(nameOrUsername string) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+// GetByID is responsible for fetching a single user from the database by ID
+func (repository Users) GetByID(userID uint64) (models.User, error) {
+	row, err := repository.db.Query("SELECT id, name, username, email, createdAt FROM users WHERE id = ?", userID)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer row.Close()
+	
+	var user models.User
+	
+	if row.Next() {
+		if err := row.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Username,
+			&user.Email,
+			&user.CreatedAt,
+		); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return user, nil
 }
