@@ -15,6 +15,9 @@ var (
 
 	// Port is the where the API is listening for connections
 	Port = 0
+
+	// SecretKey is the key used to sign the JWT token
+	SecretKey []byte
 )
 
 // Load initializes the environment variables for the application
@@ -35,4 +38,6 @@ func Load() {
 		os.Getenv("MYSQL_PASSWORD"),
 		os.Getenv("MYSQL_DATABASE"),
 	)
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }
