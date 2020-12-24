@@ -133,3 +133,24 @@ func (repository Users) Delete(userID uint64) error {
 
 	return nil
 }
+
+// GetByEmail - is responsible for fetching a user's ID and Password from the database filtered by its email address
+func (repository Users) GetByEmail(email string) (models.User, error) {
+	row, err := repository.db.Query(
+		"SELECT id, password FROM users WHERE email = ?", email,
+	)
+	if err != nil {
+		return models.User{}, err
+	}
+	defer row.Close()
+
+	var user models.User
+
+	if row.Next() {
+		if err = row.Scan(&user.ID, &user.Password); err != nil {
+			return models.User{}, err
+		}
+	}
+
+	return user, nil
+}
