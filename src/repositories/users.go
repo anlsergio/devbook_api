@@ -6,17 +6,17 @@ import (
 	"fmt"
 )
 
-// Users represents a users repository
+// Users - represents a users repository
 type Users struct {
 	db *sql.DB
 }
 
-// NewUsersRepository creates a repository of Users
+// NewUsersRepository - creates a repository of Users
 func NewUsersRepository(db *sql.DB) *Users {
 	return &Users{db}
 }
 
-// Create adds a user into the database
+// Create - adds a user into the database
 func (repository Users) Create(user models.User) (uint64, error) {
 	statement, err := repository.db.Prepare(
 		"insert into users (name, username, email, password) values (?, ?, ?, ?)",
@@ -39,7 +39,7 @@ func (repository Users) Create(user models.User) (uint64, error) {
 	return uint64(userID), nil
 }
 
-// Get is responsible  for fetching all users that meet the name or username filtering
+// Get - is responsible  for fetching all users that meet the name or username filtering
 func (repository Users) Get(nameOrUsername string) ([]models.User, error) {
 	nameOrUsername = fmt.Sprintf("%%%s%%", nameOrUsername) // %nameOrUsername%
 
@@ -75,7 +75,7 @@ func (repository Users) Get(nameOrUsername string) ([]models.User, error) {
 	return users, nil
 }
 
-// GetByID is responsible for fetching a single user from the database by ID
+// GetByID - is responsible for fetching a single user from the database by ID
 func (repository Users) GetByID(userID uint64) (models.User, error) {
 	row, err := repository.db.Query("SELECT id, name, username, email, createdAt FROM users WHERE id = ?", userID)
 	if err != nil {
@@ -100,7 +100,7 @@ func (repository Users) GetByID(userID uint64) (models.User, error) {
 	return user, nil
 }
 
-// Update changes a user information based on a given ID
+// Update - changes a user information based on a given ID
 func (repository Users) Update(userID uint64, user models.User) error {
 	statement, err := repository.db.Prepare(
 		"UPDATE users SET name = ?, username = ?, email = ? WHERE id = ?",
@@ -111,6 +111,23 @@ func (repository Users) Update(userID uint64, user models.User) error {
 	defer statement.Close()
 
 	if _, err := statement.Exec(user.Name, user.Username, user.Email, userID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Delete - removes a user from the database based on the ID
+func (repository Users) Delete(userID uint64) error {
+	statement, err := repository.db.Prepare(
+		"DELETE FROM users WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err := statement.Exec(userID); err != nil {
 		return err
 	}
 
