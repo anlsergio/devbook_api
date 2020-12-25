@@ -2,6 +2,10 @@ package auth
 
 import (
 	"api/src/config"
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -16,4 +20,39 @@ func CreateToken(userID uint64) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, permissions)
 
 	return token.SignedString([]byte(config.SecretKey))
+}
+
+// ValidateToken - validates if the token provided in the request body is valid
+func ValidateToken(r *http.Request) error {
+	tokenString := extractToken(r)
+	token, err := jwt.Parse(tokenString, getVerificationKey)
+	if err != nil {
+		return err
+	}
+
+	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return nil
+	}
+
+	return errors.New("Invalid Token")
+}
+
+func extractToken(r *http.Request) string {
+	token := r.Header.Get("Authorization")
+
+	// Expected string should be in the format "Bearer alongandweirdrandomstring"
+	if len(strings.Split(token, " ")) == 2 {
+		return strings.Split(token, " ")[1]
+	}
+
+	return ""
+}
+
+func getVerificationKey(token *jwt.Token) (interface{}, error) {
+	// Make sure that the signing method used in the provided key belongs to the same signing method family used when creating a new token
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, fmt.Errorf("Unexpected signing method! '%v'", token.Header["alg"])
+	}
+
+	return config.SecretKey, nil
 }

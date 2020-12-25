@@ -1,23 +1,27 @@
 package middlewares
 
 import (
-	"fmt"
+	"api/src/auth"
+	"api/src/responses"
 	"log"
 	"net/http"
 )
 
 // Logger - Prints out information regarding the current request
-func Logger(next http.HandlerFunc) http.HandlerFunc {
+func Logger(nextFunc http.HandlerFunc) http.HandlerFunc {
 	return func (w http.ResponseWriter, r *http.Request) {
 		log.Printf("\n %s %s %s", r.Method, r.RequestURI, r.Host)
-		next(w, r)
+		nextFunc(w, r)
 	}
 }
 
-// Authenticate - checks if the current user making the request has an active and valid session token
-func Authenticate(next http.HandlerFunc) http.HandlerFunc {
+// CheckAuth - checks if the user making the request is currently authenticated
+func CheckAuth(nextFunc http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Authenticating the request...")
-		next(w, r)
+		if err := auth.ValidateToken(r); err != nil {
+			responses.Error(w, http.StatusUnauthorized, err)
+			return
+		}
+		nextFunc(w, r)
 	}
 }
