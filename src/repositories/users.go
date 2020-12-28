@@ -171,3 +171,53 @@ func (repository Users) Follow(userID, followerID uint64) error {
 
 	return nil
 }
+
+// Unfollow - Allows a user to unfollow another
+func (repository Users) Unfollow(userID, followerID uint64) error {
+	statement, err := repository.db.Prepare(
+		"DELETE FROM followers WHERE user_id = ? AND follower_id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(userID, followerID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetFollowers - Fetches all followers from a given user
+func (repository Users) GetFollowers(userID uint64) ([]models.User, error) {
+	rows, err := repository.db.Query(`
+		SELECT u.id, u.name, u.username, u.email, u.createdAt FROM users u
+		INNER JOIN followers f ON u.id = f.follower_id
+		WHERE f.user_id = ?
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+
+	for rows.Next() {
+		var user models.User
+
+		if err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Username,
+			&user.Email,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
