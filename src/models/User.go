@@ -18,7 +18,7 @@ type User struct {
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 }
 
-// Prepare calls the validation and format functions
+// Prepare - calls the validation and format functions
 func (user *User) Prepare(isNew bool) error {
 	if err := user.validate(isNew); err != nil {
 		return err

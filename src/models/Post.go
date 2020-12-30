@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"strings"
+	"time"
+)
 
 // Post - represents a post to the social media feed
 type Post struct {
@@ -11,4 +15,32 @@ type Post struct {
 	AuthorUserName string    `json:"authorUserName,omitempty"`
 	Likes          uint64    `json:"likes"`
 	CreatedAt      time.Time `json:"createdAt,omitempty"`
+}
+
+// Prepare - calls the validation and format functions
+func (post *Post) Prepare() error {
+	if err := post.validate(); err != nil {
+		return err
+	}
+
+	post.format()
+
+	return nil
+}
+
+func (post *Post) validate() error {
+	if post.Title == "" {
+		return errors.New("The post's title cannot be blank")
+	}
+
+	if post.Content == "" {
+		return errors.New("The post needs a content")
+	}
+
+	return nil
+}
+
+func (post *Post) format() {
+	post.Title = strings.TrimSpace(post.Title)
+	post.Content = strings.TrimSpace(post.Content)
 }
