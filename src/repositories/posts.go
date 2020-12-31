@@ -104,3 +104,20 @@ func (repository Posts) GetPosts(userID uint64) ([]models.Post, error) {
 
 	return posts, nil
 }
+
+// Update - changes the information regarding an existing post
+func (repository Posts) Update(postID uint64, post models.Post) error {
+	statement, err := repository.db.Prepare(
+		"UPDATE posts SET title = ?, content = ? WHERE id = ?",
+	)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	if _, err = statement.Exec(post.Title, post.Content, postID); err != nil {
+		return err
+	}
+
+	return nil
+}
