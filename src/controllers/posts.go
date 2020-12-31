@@ -9,6 +9,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // CreatePost - Creates a new post and saves it into the database
@@ -63,7 +66,28 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 
 // GetPost - Fetches the details regarding a specific post
 func GetPost(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
+	postID, err := strconv.ParseUint(parameters["postID"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
 
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewPostsRepository(db)
+	post, err := repository.GetPostbyID(postID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, post)
 }
 
 // UpdatePost - Updates the information regarding a given post
