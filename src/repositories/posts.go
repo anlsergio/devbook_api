@@ -68,3 +68,39 @@ func (repository Posts) GetPostbyID(postID uint64) (models.Post, error) {
 
 	return post, nil
 }
+
+// GetPosts - Get all posts from users that a given user is following along with its own posts
+func (repository Posts) GetPosts(userID uint64) ([]models.Post, error) {
+	rows, err := repository.db.Query(`
+		SELECT DISTINCT p.*, u.username FROM posts p
+		INNER JOIN users u ON u.id = p.author_id
+		INNER JOIN followers f ON p.author_id = f.user_id
+		WHERE u.id = ? OR f.follower_id = ?
+		ORDER BY 1 DESC
+	`, userID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var posts []models.Post
+
+	for rows.Next() {
+		var post models.Post
+
+		if err = rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Content,
+			&post.AuthorID,
+			&post.Likes,
+			&post.CreatedAt,
+			&post.AuthorUsername,
+		); err != nil {
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}

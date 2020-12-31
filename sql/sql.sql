@@ -16,18 +16,18 @@ CREATE TABLE users(
 ) ENGINE=INNODB;
 
 CREATE TABLE followers(
-    user_id int not null,
-    follower_id int not null,
+  user_id int not null,
+  follower_id int not null,
 
-    PRIMARY KEY (user_id, follower_id),
+  PRIMARY KEY (user_id, follower_id),
 
-    FOREIGN KEY (user_id)
-    REFERENCES users(id)
-    ON DELETE CASCADE,
+  FOREIGN KEY (user_id)
+  REFERENCES users(id)
+  ON DELETE CASCADE,
 
-    FOREIGN KEY (follower_id)
-    REFERENCES users(id)
-    ON DELETE CASCADE
+  FOREIGN KEY (follower_id)
+  REFERENCES users(id)
+  ON DELETE CASCADE
 ) ENGINE=INNODB;
 
 CREATE TABLE posts(

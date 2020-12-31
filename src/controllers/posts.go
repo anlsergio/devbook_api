@@ -61,7 +61,27 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 
 // GetPosts - Get all the posts from users that are being followed the current user (feed)
 func GetPosts(w http.ResponseWriter, r *http.Request) {
+	userID, err := auth.ExtractUserID(r)
+	if err != nil {
+		responses.Error(w, http.StatusUnauthorized, err)
+		return
+	}
 
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewPostsRepository(db)
+	posts, err := repository.GetPosts(userID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, posts)
 }
 
 // GetPost - Fetches the details regarding a specific post
