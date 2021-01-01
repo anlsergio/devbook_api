@@ -211,3 +211,29 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	responses.JSON(w, http.StatusNoContent, nil)
 }
+
+// LikePost - adds a new like to a given post
+func LikePost(w http.ResponseWriter, r *http.Request) {
+	parameters := mux.Vars(r)
+	postID, err := strconv.ParseUint(parameters["postID"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := db.Connect()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewPostsRepository(db)
+	if err = repository.Like(postID); err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+
+}

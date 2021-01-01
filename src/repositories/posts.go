@@ -172,3 +172,17 @@ func (repository Posts) GetUserPosts(userID uint64) ([]models.Post, error) {
 
 	return posts, nil
 }
+
+// Like - adds a new like to a given post
+func (repository Posts) Like(postID uint64) error {
+	statement, err := repository.db.Prepare(
+		"UPDATE posts SET likes = likes + 1 WHERE id = ?",
+	)
+	defer statement.Close()
+
+	if _, err = statement.Exec(postID); err != nil {
+		return err
+	}
+
+	return nil
+}
