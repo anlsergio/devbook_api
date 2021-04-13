@@ -238,8 +238,8 @@ func LikePost(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// UnlikePost - removes a like from a given post
-func UnlikePost(w http.ResponseWriter, r *http.Request) {
+// DislikePost - removes a like from a given post
+func DislikePost(w http.ResponseWriter, r *http.Request) {
 	parameters := mux.Vars(r)
 	postID, err := strconv.ParseUint(parameters["postID"], 10, 64)
 	if err != nil {
@@ -255,7 +255,7 @@ func UnlikePost(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repositories.NewPostsRepository(db)
-	if err = repository.Unlike(postID); err != nil {
+	if err = repository.Dislike(postID); err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
 	}
